@@ -190,7 +190,8 @@ async def download_report(request: dict):
         incident_id = request.get("incident_id", "UNKNOWN")
         pdf_bytes = generate_incident_pdf(request)
 
-        filename = f"NovaRescue-{incident_id}-{get_utc_timestamp()[:10]}.pdf"
+        safe_date = get_utc_timestamp()[:10]  # YYYY-MM-DD (safe for all OS filenames)
+        filename = f"NovaRescue-{incident_id}-{safe_date}.pdf"
         return StreamingResponse(
             io.BytesIO(pdf_bytes),
             media_type="application/pdf",

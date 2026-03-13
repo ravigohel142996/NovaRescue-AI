@@ -24,8 +24,7 @@ export default function VoiceSummary({ summary, isVisible }) {
 
   useEffect(() => {
     if (!isVisible || !summary) return;
-    // Auto-play when new summary arrives
-    // handlePlay();
+    // Auto-play is intentionally disabled — users activate playback manually
   }, [summary, isVisible]);
 
   const handlePlay = () => {
