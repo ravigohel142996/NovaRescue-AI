@@ -1,0 +1,166 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  * {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+  }
+
+  body {
+    @apply bg-nova-bg text-nova-text font-sans;
+    background: #0A0A0F;
+    color: #E2E8F0;
+  }
+
+  ::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+  }
+
+  ::-webkit-scrollbar-track {
+    background: #0F1117;
+  }
+
+  ::-webkit-scrollbar-thumb {
+    background: #CC0000;
+    border-radius: 3px;
+  }
+
+  ::-webkit-scrollbar-thumb:hover {
+    background: #FF0000;
+  }
+}
+
+@layer components {
+  .nova-panel {
+    @apply bg-nova-panel border border-nova-border rounded-lg shadow-nova-panel;
+  }
+
+  .nova-btn-primary {
+    @apply bg-nova-accent hover:bg-nova-accent-dark text-white font-semibold px-6 py-2.5 rounded-md
+           transition-all duration-200 flex items-center gap-2 cursor-pointer
+           shadow-nova-glow hover:shadow-none;
+  }
+
+  .nova-btn-secondary {
+    @apply bg-transparent border border-nova-border hover:border-nova-accent text-nova-text
+           font-medium px-4 py-2 rounded-md transition-all duration-200 flex items-center gap-2 cursor-pointer;
+  }
+
+  .nova-input {
+    @apply bg-nova-bg border border-nova-border rounded-md px-4 py-2.5 text-nova-text
+           placeholder-nova-muted focus:outline-none focus:border-nova-accent
+           transition-colors duration-200 w-full font-mono text-sm;
+  }
+
+  .nova-label {
+    @apply text-xs font-semibold text-nova-muted uppercase tracking-wider mb-1.5 block;
+  }
+
+  .status-dot {
+    @apply w-2 h-2 rounded-full;
+  }
+
+  .status-dot.running {
+    @apply bg-nova-warning animate-pulse;
+  }
+
+  .status-dot.completed {
+    @apply bg-nova-success;
+  }
+
+  .status-dot.failed {
+    @apply bg-nova-danger;
+  }
+
+  .status-dot.pending {
+    @apply bg-nova-muted;
+  }
+
+  .severity-badge {
+    @apply px-2.5 py-0.5 rounded-full text-xs font-bold uppercase tracking-wider;
+  }
+
+  .severity-low {
+    @apply bg-green-900/40 text-green-400 border border-green-700;
+  }
+
+  .severity-medium {
+    @apply bg-yellow-900/40 text-yellow-400 border border-yellow-700;
+  }
+
+  .severity-high {
+    @apply bg-orange-900/40 text-orange-400 border border-orange-700;
+  }
+
+  .severity-critical {
+    @apply bg-red-900/40 text-red-400 border border-red-700 animate-pulse-red;
+  }
+
+  .alert-red {
+    @apply bg-red-900/20 border-red-700 text-red-400;
+  }
+
+  .alert-orange {
+    @apply bg-orange-900/20 border-orange-700 text-orange-400;
+  }
+
+  .alert-yellow {
+    @apply bg-yellow-900/20 border-yellow-700 text-yellow-400;
+  }
+
+  .alert-green {
+    @apply bg-green-900/20 border-green-700 text-green-400;
+  }
+
+  .terminal-line {
+    @apply font-mono text-xs text-green-400 leading-relaxed;
+  }
+
+  .terminal-line.info {
+    @apply text-blue-400;
+  }
+
+  .terminal-line.warn {
+    @apply text-yellow-400;
+  }
+
+  .terminal-line.error {
+    @apply text-red-400;
+  }
+
+  .metric-card {
+    @apply nova-panel p-4 flex flex-col gap-1;
+  }
+
+  .metric-value {
+    @apply text-2xl font-bold text-nova-text;
+  }
+
+  .metric-label {
+    @apply text-xs text-nova-muted uppercase tracking-wider;
+  }
+}
+
+/* Glitch animation for critical alerts */
+@keyframes glitch {
+  0% { transform: translate(0); }
+  20% { transform: translate(-2px, 2px); }
+  40% { transform: translate(-2px, -2px); }
+  60% { transform: translate(2px, 2px); }
+  80% { transform: translate(2px, -2px); }
+  100% { transform: translate(0); }
+}
+
+.glitch {
+  animation: glitch 0.3s infinite;
+}
+
+/* Scan line effect */
+@keyframes scanline {
+  0% { top: 0%; }
+  100% { top: 100%; }
+}
