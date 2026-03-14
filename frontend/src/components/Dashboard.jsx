@@ -4,7 +4,7 @@
  * Bottom: Resource Charts
  */
 
-import React, { useState, useCallback } from "react";
+import React, { useState, useCallback, useEffect } from "react";
 import { toast } from "react-toastify";
 import {
   Shield,
@@ -61,6 +61,21 @@ export default function Dashboard() {
   const [isLoading, setIsLoading] = useState(false);
   const [isOnline, setIsOnline] = useState(true);
   const [lastUpdated, setLastUpdated] = useState(null);
+  // Tracks which agent (0–3) is currently RUNNING during sequential execution
+  const [runningAgentIndex, setRunningAgentIndex] = useState(-1);
+
+  // Advance the running-agent indicator every 1.5 s while a request is in flight
+  useEffect(() => {
+    if (!isLoading) {
+      setRunningAgentIndex(-1);
+      return;
+    }
+    setRunningAgentIndex(0);
+    const interval = setInterval(() => {
+      setRunningAgentIndex((prev) => (prev < 3 ? prev + 1 : prev));
+    }, 1300);
+    return () => clearInterval(interval);
+  }, [isLoading]);
 
   const handleSubmit = useCallback(
     async ({ mode, description, location, simulationMode, file }) => {
@@ -71,10 +86,9 @@ export default function Dashboard() {
         let response;
 
         if (mode === "text") {
-          const res = await analysisApi.analyzeText({
+          const res = await analysisApi.analyzeDisaster({
             description,
             location,
-            simulation_mode: simulationMode,
           });
           response = res.data;
         } else if (mode === "image" && file) {
@@ -176,6 +190,7 @@ export default function Dashboard() {
               agentResults={analysisData?.agent_results}
               isOrchestrating={isLoading}
               totalTime={analysisData?.total_execution_time_ms}
+              runningAgentIndex={runningAgentIndex}
             />
           </div>
 
