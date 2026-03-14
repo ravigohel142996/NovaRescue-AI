@@ -16,7 +16,7 @@ from fastapi import APIRouter, File, Form, HTTPException, UploadFile
 from fastapi.responses import StreamingResponse
 
 from agents.orchestrator import AgentOrchestrator
-from models.request_models import TextAnalysisRequest
+from models.request_models import TextAnalysisRequest, DisasterSimpleRequest
 from services.s3_service import S3Service
 from utils.logger import setup_logger
 from utils.helpers import get_utc_timestamp
@@ -29,6 +29,35 @@ SIMULATION_MODE = os.getenv("SIMULATION_MODE", "true").lower() == "true"
 # Allowed image MIME types
 ALLOWED_IMAGE_TYPES = {"image/jpeg", "image/png", "image/gif", "image/webp"}
 MAX_IMAGE_SIZE_MB = 10
+
+
+@router.post("/analyze-disaster")
+async def analyze_disaster(request: DisasterSimpleRequest):
+    """
+    Analyze a disaster report via four sequentially-executed agents.
+
+    Runs DisasterAnalysisAgent → MedicalResourceAgent →
+    LogisticsEvacuationAgent → CommunicationAlertAgent with a 1-second
+    pause between each so the frontend can animate the IDLE → RUNNING →
+    COMPLETED transitions in a realistic, step-by-step fashion.
+
+    Always runs in simulation mode (no AWS credentials required).
+    """
+    logger.info(
+        "📥 /analyze-disaster request received for location: %s", request.location
+    )
+
+    try:
+        orchestrator = AgentOrchestrator(simulation_mode=True)
+        result = await orchestrator.orchestrate_sequential(
+            description=request.description,
+            location=request.location,
+        )
+        return result.model_dump()
+
+    except Exception as exc:
+        logger.error("Disaster analysis failed: %s", exc)
+        raise HTTPException(status_code=500, detail=str(exc)) from exc
 
 
 @router.post("/analyze/text")

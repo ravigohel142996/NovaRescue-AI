@@ -41,6 +41,13 @@ export const healthApi = {
 
 export const analysisApi = {
   /**
+   * Analyze disaster from text description — runs four agents sequentially
+   * with realistic delays so the UI can animate IDLE → RUNNING → COMPLETED.
+   * Always uses simulation mode (no AWS credentials required).
+   */
+  analyzeDisaster: (payload) => api.post("/api/analyze-disaster", payload),
+
+  /**
    * Analyze disaster from text description
    */
   analyzeText: (payload) => api.post("/api/analyze/text", payload),

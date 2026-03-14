@@ -54,13 +54,16 @@ const AGENT_CONFIG = [
   },
 ];
 
-function AgentCard({ config, result, index, isOrchestrating }) {
+function AgentCard({ config, result, index, isOrchestrating, runningAgentIndex }) {
   const Icon = config.icon;
 
   const getStatus = () => {
     if (!result && !isOrchestrating) return "idle";
     if (!result && isOrchestrating) {
-      return index === 0 ? "running" : "pending";
+      if (runningAgentIndex < 0) return "pending";
+      if (index < runningAgentIndex) return "completed";
+      if (index === runningAgentIndex) return "running";
+      return "pending";
     }
     return result.status || "completed";
   };
@@ -170,7 +173,7 @@ function AgentCard({ config, result, index, isOrchestrating }) {
   );
 }
 
-export default function AgentStatus({ agentResults, isOrchestrating, totalTime }) {
+export default function AgentStatus({ agentResults, isOrchestrating, totalTime, runningAgentIndex }) {
   // Build result map by agent name
   const resultMap = {};
   if (agentResults) {
@@ -239,6 +242,7 @@ export default function AgentStatus({ agentResults, isOrchestrating, totalTime }
             result={resultMap[config.key]}
             index={index}
             isOrchestrating={isOrchestrating}
+            runningAgentIndex={runningAgentIndex}
           />
         ))}
       </div>

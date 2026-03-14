@@ -169,6 +169,90 @@ class AgentOrchestrator:
                 error=str(exc),
             )
 
+    async def orchestrate_sequential(
+        self,
+        description: str,
+        location: str = "Unknown",
+    ) -> FullAnalysisResponse:
+        """
+        Orchestrate all agents sequentially with a 1-second pause between each.
+
+        This mode is used by the /analyze-disaster endpoint so the frontend
+        can animate agent status transitions (IDLE → RUNNING → COMPLETED)
+        in a realistic step-by-step fashion.
+
+        Args:
+            description: Disaster description text
+            location: Affected location
+
+        Returns:
+            Complete FullAnalysisResponse
+        """
+        total_start = time.time()
+        incident_id = generate_incident_id()
+        timestamp = get_utc_timestamp()
+
+        logger.info(
+            "🚨 Sequential orchestration for incident %s (simulation=%s)",
+            incident_id,
+            self.simulation_mode,
+        )
+
+        loop = asyncio.get_event_loop()
+
+        # Step 1: Disaster Analysis Agent
+        disaster_output, disaster_result = await loop.run_in_executor(
+            _executor,
+            lambda: self._run_disaster_agent(description, location, None, "text/plain"),
+        )
+        await asyncio.sleep(1.0)
+
+        # Step 2: Medical Resource Agent
+        medical_output, medical_result = await loop.run_in_executor(
+            _executor, lambda: self._run_medical_agent(disaster_output)
+        )
+        await asyncio.sleep(1.0)
+
+        # Step 3: Logistics & Evacuation Agent
+        logistics_output, logistics_result = await loop.run_in_executor(
+            _executor, lambda: self._run_logistics_agent(disaster_output)
+        )
+        await asyncio.sleep(1.0)
+
+        # Step 4: Communication & Alert Agent
+        comm_output, comm_result = await loop.run_in_executor(
+            _executor, lambda: self._run_communication_agent(disaster_output)
+        )
+
+        voice_summary = _build_voice_summary(
+            disaster_output, medical_output, logistics_output, comm_output
+        )
+
+        total_ms = int((time.time() - total_start) * 1000)
+        logger.info(
+            "🏁 Sequential orchestration complete for %s in %dms", incident_id, total_ms
+        )
+
+        return FullAnalysisResponse(
+            incident_id=incident_id,
+            timestamp=timestamp,
+            input_type="text",
+            simulation_mode=self.simulation_mode,
+            disaster_analysis=disaster_output,
+            medical_plan=medical_output,
+            logistics_plan=logistics_output,
+            communication_plan=comm_output,
+            agent_results=[
+                disaster_result,
+                medical_result,
+                logistics_result,
+                comm_result,
+            ],
+            voice_summary=voice_summary,
+            total_execution_time_ms=total_ms,
+            status="completed",
+        )
+
     async def orchestrate(
         self,
         description: str,

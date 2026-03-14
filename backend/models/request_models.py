@@ -37,6 +37,21 @@ class VoiceAnalysisRequest(BaseModel):
     simulation_mode: bool = Field(default=True)
 
 
+class DisasterSimpleRequest(BaseModel):
+    """Simple request model for the /analyze-disaster endpoint."""
+
+    description: str = Field(
+        ...,
+        min_length=10,
+        max_length=5000,
+        description="Emergency situation description",
+    )
+    location: str = Field(
+        default="Unknown",
+        description="Affected location or area",
+    )
+
+
 class IncidentReportRequest(BaseModel):
     """Request model for generating an incident report."""
 
