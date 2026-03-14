@@ -88,7 +88,15 @@ NovaRescue-AI/
 - Node.js 18+
 - AWS account (optional — simulation mode works without credentials)
 
-### 1. Backend Setup
+### 1. Backend Setup (Root — for Render deployment)
+
+```bash
+pip install -r requirements.txt
+uvicorn main:app --reload
+# API docs: http://localhost:8000/docs
+```
+
+### 2. Backend Setup (Full — local development)
 
 ```bash
 cd backend
