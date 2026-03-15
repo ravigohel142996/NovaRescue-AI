@@ -15,7 +15,7 @@ app.add_middleware(
 
 @app.get("/")
 def root():
-    return {"message": "NovaRescue backend running"}
+    return {"status": "NovaRescue backend running"}
 
 
 @app.post("/api/analyze-disaster")
