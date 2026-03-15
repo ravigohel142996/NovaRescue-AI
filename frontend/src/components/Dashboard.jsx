@@ -21,6 +21,7 @@ import AgentStatus from "./AgentStatus";
 import ResponsePlan from "./ResponsePlan";
 import ResourceCharts from "./ResourceCharts";
 import VoiceSummary from "./VoiceSummary";
+import SystemLog from "./SystemLog";
 import { analysisApi } from "../services/api";
 import { buildDemoAnalysis } from "../services/demoResponse";
 
@@ -67,6 +68,14 @@ export default function Dashboard() {
   const [lastUpdated, setLastUpdated] = useState(null);
   // Tracks which agent (0–3) is currently RUNNING during sequential execution
   const [runningAgentIndex, setRunningAgentIndex] = useState(-1);
+  // System log entries: { time: "HH:MM:SS", message: string, level?: string }
+  const [logs, setLogs] = useState([]);
+
+  const addLog = useCallback((message, level = "info") => {
+    const now = new Date();
+    const time = now.toTimeString().split(" ")[0]; // HH:MM:SS
+    setLogs((prev) => [...prev, { time, message, level }]);
+  }, []); // setLogs is stable, no other dependencies
 
   // Advance the running-agent indicator every 1.5 s while a request is in flight
   useEffect(() => {
@@ -75,16 +84,31 @@ export default function Dashboard() {
       return;
     }
     setRunningAgentIndex(0);
+    const agentLogMessages = [
+      "DisasterAnalysisAgent running",
+      "MedicalResourceAgent running",
+      "LogisticsAgent planning evacuation",
+      "CommunicationAgent generating alerts",
+    ];
+    addLog(agentLogMessages[0]);
     const interval = setInterval(() => {
-      setRunningAgentIndex((prev) => (prev < 3 ? prev + 1 : prev));
+      setRunningAgentIndex((prev) => {
+        const next = prev < 3 ? prev + 1 : prev;
+        if (next !== prev && agentLogMessages[next]) {
+          addLog(agentLogMessages[next]);
+        }
+        return next;
+      });
     }, 1300);
     return () => clearInterval(interval);
-  }, [isLoading]);
+  }, [isLoading, addLog]);
 
   const handleSubmit = useCallback(
     async ({ mode, description, location, simulationMode, file }) => {
       setIsLoading(true);
       setAnalysisData(null);
+      setLogs([]);
+      addLog("Disaster report received");
 
       try {
         let response;
@@ -113,6 +137,9 @@ export default function Dashboard() {
         }
 
         if (response) {
+          const severity = response.disaster_analysis?.severity_level?.toUpperCase();
+          if (severity) addLog(`Severity level ${severity}`, severity === "CRITICAL" || severity === "HIGH" ? "warn" : "info");
+          addLog("Response plan generated", "success");
           setAnalysisData(response);
           setLastUpdated(new Date().toLocaleTimeString());
           setIsOnline(true);
@@ -122,17 +149,22 @@ export default function Dashboard() {
         }
       } catch (err) {
         console.error("Analysis failed:", err);
+        addLog(`Error: ${err.message || "Backend unavailable"}`, "error");
 
         const networkIssue = (err?.message || "").toLowerCase().includes("network error");
         const routeUnavailable = err?.status === 404 || err?.status === 405;
 
         if (networkIssue || routeUnavailable) {
+          addLog("Switching to built-in demo engine", "warn");
           const fallback = await buildDemoAnalysis({
             mode,
             description,
             location,
             simulationMode,
           });
+          const severity = fallback.disaster_analysis?.severity_level?.toUpperCase();
+          if (severity) addLog(`Severity level ${severity}`, severity === "CRITICAL" || severity === "HIGH" ? "warn" : "info");
+          addLog("Demo response plan generated", "success");
           setAnalysisData(fallback);
           setLastUpdated(new Date().toLocaleTimeString());
           setIsOnline(true);
@@ -152,7 +184,7 @@ export default function Dashboard() {
         setIsLoading(false);
       }
     },
-    []
+    [addLog]
   );
 
   return (
@@ -217,13 +249,14 @@ export default function Dashboard() {
             <div className="lg:col-span-3">
               <InputPanel onSubmit={handleSubmit} isLoading={isLoading} />
             </div>
-            <div className="lg:col-span-4">
+            <div className="lg:col-span-4 flex flex-col gap-4">
               <AgentStatus
                 agentResults={analysisData?.agent_results}
                 isOrchestrating={isLoading}
                 totalTime={analysisData?.total_execution_time_ms}
                 runningAgentIndex={runningAgentIndex}
               />
+              <SystemLog logs={logs} />
             </div>
             <div className="lg:col-span-5 max-h-[65vh] overflow-y-auto pr-1">
               <ResponsePlan analysisData={analysisData} />
