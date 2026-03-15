@@ -1,31 +1,38 @@
-"""
-NovaRescue AI - Root application entry point.
+from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
+import asyncio
 
-This file exists so that the Render start command
-  gunicorn -k uvicorn.workers.UvicornWorker main:app
-works from the project root directory.  All application logic lives inside
-the `backend/` package; we add that directory to sys.path here and then
-re-export the fully-configured FastAPI `app` object.
-"""
+app = FastAPI(title="NovaRescue AI")
 
-import importlib.util
-import os
-import sys
-
-# Make all backend modules importable (routes, agents, models, services, utils)
-_backend_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), "backend")
-if _backend_dir not in sys.path:
-    sys.path.insert(0, _backend_dir)
-
-# Load backend/main.py via importlib to avoid a naming collision — both this
-# file and the target are called "main.py".
-_spec = importlib.util.spec_from_file_location(
-    "backend_main",
-    os.path.join(_backend_dir, "main.py"),
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
 )
-_module = importlib.util.module_from_spec(_spec)
-sys.modules["backend_main"] = _module
-_spec.loader.exec_module(_module)
 
-# Re-export `app` so gunicorn/uvicorn can discover it as `main:app`
-app = _module.app
+
+@app.get("/")
+def root():
+    return {"message": "NovaRescue backend running"}
+
+
+@app.post("/api/analyze-disaster")
+async def analyze(data: dict):
+    description = data.get("description")
+    location = data.get("location")
+
+    await asyncio.sleep(1)
+
+    return {
+        "disaster_type": "Flood",
+        "severity": "Critical",
+        "location": location,
+        "summary": f"Major flooding detected: {description}",
+        "response_plan": {
+            "ambulances": 10,
+            "evacuation_zones": ["Zone A", "Zone B"],
+            "alert": "Evacuate low-lying areas immediately",
+        },
+    }
