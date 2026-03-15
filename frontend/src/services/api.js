@@ -5,7 +5,27 @@
 
 import axios from "axios";
 
-const BASE_URL = process.env.REACT_APP_API_URL || "http://localhost:8000";
+const LOCAL_API_URL = "http://localhost:8000";
+
+function resolveBaseUrl() {
+  const envUrl = process.env.REACT_APP_API_URL?.trim();
+  if (envUrl) {
+    return envUrl;
+  }
+
+  if (typeof window === "undefined") {
+    return LOCAL_API_URL;
+  }
+
+  const { hostname, origin } = window.location;
+  const isLocalhost = hostname === "localhost" || hostname === "127.0.0.1";
+
+  // Local dev: React app runs on :3000 and backend on :8000.
+  // Deployed env: frontend and backend are usually served under the same origin.
+  return isLocalhost ? LOCAL_API_URL : origin;
+}
+
+const BASE_URL = resolveBaseUrl();
 
 const api = axios.create({
   baseURL: BASE_URL,
@@ -15,7 +35,7 @@ const api = axios.create({
 // Request interceptor for logging
 api.interceptors.request.use(
   (config) => {
-    console.log(`[API] ${config.method?.toUpperCase()} ${config.url}`);
+    console.log(`[API] ${config.method?.toUpperCase()} ${config.baseURL}${config.url}`);
     return config;
   },
   (error) => Promise.reject(error)
@@ -25,9 +45,12 @@ api.interceptors.request.use(
 api.interceptors.response.use(
   (response) => response,
   (error) => {
+    const isNetworkError = !error.response;
     const message =
       error.response?.data?.detail ||
-      error.message ||
+      (isNetworkError
+        ? "Network Error: Unable to reach backend API. Check API URL/CORS/deployment routing."
+        : error.message) ||
       "Unknown error occurred";
     console.error(`[API Error] ${message}`);
     return Promise.reject(new Error(message));

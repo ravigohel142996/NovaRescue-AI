@@ -22,6 +22,7 @@ import ResponsePlan from "./ResponsePlan";
 import ResourceCharts from "./ResourceCharts";
 import VoiceSummary from "./VoiceSummary";
 import { analysisApi } from "../services/api";
+import { buildDemoAnalysis } from "../services/demoResponse";
 
 function StatusBar({ isOnline, lastUpdated, incidentId }) {
   return (
@@ -121,10 +122,29 @@ export default function Dashboard() {
         }
       } catch (err) {
         console.error("Analysis failed:", err);
-        setIsOnline(false);
-        toast.error(`Analysis failed: ${err.message || "Backend unavailable"}`, {
-          autoClose: 8000,
-        });
+
+        const networkIssue = (err?.message || "").toLowerCase().includes("network error");
+
+        if (networkIssue) {
+          const fallback = await buildDemoAnalysis({
+            mode,
+            description,
+            location,
+            simulationMode,
+          });
+          setAnalysisData(fallback);
+          setLastUpdated(new Date().toLocaleTimeString());
+          setIsOnline(true);
+          toast.warning(
+            "Backend unreachable. Switched to built-in demo engine so all modules remain interactive.",
+            { autoClose: 7000 }
+          );
+        } else {
+          setIsOnline(false);
+          toast.error(`Analysis failed: ${err.message || "Backend unavailable"}`, {
+            autoClose: 8000,
+          });
+        }
       } finally {
         setIsLoading(false);
       }

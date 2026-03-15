@@ -134,8 +134,10 @@ export default function InputPanel({ onSubmit, isLoading }) {
       <div className="grid grid-cols-3 gap-2">
         {INPUT_MODES.map(({ id, label, icon: Icon }) => (
           <button
+            type="button"
             key={id}
             onClick={() => setMode(id)}
+            disabled={isLoading}
             className={`flex flex-col items-center gap-2 py-3 px-2 rounded-md border transition-all duration-200 text-xs font-medium
               ${
                 mode === id
@@ -196,6 +198,7 @@ export default function InputPanel({ onSubmit, isLoading }) {
                   </p>
                 </div>
                 <button
+                  type="button"
                   onClick={(e) => {
                     e.stopPropagation();
                     setUploadedFile(null);
@@ -237,7 +240,8 @@ export default function InputPanel({ onSubmit, isLoading }) {
       {/* Voice Input Mode */}
       {mode === "voice" && (
         <div className="flex flex-col gap-4 flex-1 items-center justify-center">
-          <div
+          <button
+            type="button"
             className={`w-24 h-24 rounded-full flex items-center justify-center cursor-pointer transition-all duration-200
               ${
                 isRecording
@@ -246,13 +250,15 @@ export default function InputPanel({ onSubmit, isLoading }) {
               }
               ${isLoading ? "opacity-50 cursor-not-allowed" : ""}`}
             onClick={isRecording ? stopRecording : startRecording}
+            disabled={isLoading}
+            aria-label={isRecording ? "Stop recording" : "Start recording"}
           >
             {isRecording ? (
               <MicOff size={36} className="text-nova-danger" />
             ) : (
               <Mic size={36} className="text-nova-accent" />
             )}
-          </div>
+          </button>
 
           {isRecording && (
             <div className="flex items-center gap-2">
@@ -270,6 +276,7 @@ export default function InputPanel({ onSubmit, isLoading }) {
                 Voice recorded ({formatTime(recordingTime)})
               </div>
               <button
+                type="button"
                 onClick={() => {
                   setAudioBlob(null);
                   setRecordingTime(0);
@@ -311,6 +318,7 @@ export default function InputPanel({ onSubmit, isLoading }) {
           <p className="text-xs text-nova-muted">Demo without AWS credentials</p>
         </div>
         <button
+          type="button"
           onClick={() => setSimulationMode(!simulationMode)}
           className={`relative w-11 h-6 rounded-full transition-colors duration-200 ${
             simulationMode ? "bg-nova-accent" : "bg-nova-border"
@@ -327,6 +335,7 @@ export default function InputPanel({ onSubmit, isLoading }) {
 
       {/* Submit Button */}
       <button
+        type="button"
         onClick={handleSubmit}
         disabled={isLoading}
         className={`nova-btn-primary w-full justify-center py-3 ${
