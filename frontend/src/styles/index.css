@@ -11,13 +11,13 @@
 
   body {
     @apply bg-nova-bg text-nova-text font-sans;
-    background: #0A0A0F;
+    background: radial-gradient(circle at 10% 0%, #17192a 0%, #0a0a0f 55%);
     color: #E2E8F0;
   }
 
   ::-webkit-scrollbar {
-    width: 6px;
-    height: 6px;
+    width: 8px;
+    height: 8px;
   }
 
   ::-webkit-scrollbar-track {
@@ -25,18 +25,36 @@
   }
 
   ::-webkit-scrollbar-thumb {
-    background: #CC0000;
-    border-radius: 3px;
+    background: linear-gradient(180deg, #cc0000, #8d1111);
+    border-radius: 999px;
   }
 
   ::-webkit-scrollbar-thumb:hover {
-    background: #FF0000;
+    background: linear-gradient(180deg, #ff0000, #af1818);
   }
 }
 
 @layer components {
   .nova-panel {
     @apply bg-nova-panel border border-nova-border rounded-lg shadow-nova-panel;
+  }
+
+  .dashboard-shell {
+    background-image:
+      radial-gradient(circle at 15% 0%, rgba(204, 0, 0, 0.18), transparent 35%),
+      radial-gradient(circle at 85% 20%, rgba(54, 179, 126, 0.12), transparent 40%);
+  }
+
+  .dashboard-scroll-area {
+    min-height: calc(100vh - 128px);
+  }
+
+  .scroll-card {
+    @apply rounded-xl border border-nova-border bg-nova-panel/70 p-4 shadow-nova-panel backdrop-blur-sm;
+  }
+
+  .nova-glow-ring {
+    box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.08), 0 0 26px rgba(204, 0, 0, 0.35);
   }
 
   .nova-btn-primary {

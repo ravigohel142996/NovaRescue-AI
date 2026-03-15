@@ -13,6 +13,7 @@ import {
   WifiOff,
   Clock,
   AlertCircle,
+  ChevronDown,
 } from "lucide-react";
 
 import InputPanel from "./InputPanel";
@@ -24,33 +25,35 @@ import { analysisApi } from "../services/api";
 
 function StatusBar({ isOnline, lastUpdated, incidentId }) {
   return (
-    <div className="flex items-center justify-between px-5 py-2 bg-nova-panel border-b border-nova-border text-xs font-mono">
-      <div className="flex items-center gap-4">
-        <div className="flex items-center gap-1.5">
-          {isOnline ? (
-            <Wifi size={11} className="text-nova-success" />
-          ) : (
-            <WifiOff size={11} className="text-nova-danger" />
-          )}
-          <span className={isOnline ? "text-nova-success" : "text-nova-danger"}>
-            {isOnline ? "SYSTEM ONLINE" : "OFFLINE MODE"}
-          </span>
-        </div>
-        {incidentId && (
-          <div className="flex items-center gap-1.5 text-nova-muted">
-            <AlertCircle size={11} />
-            <span>INC: {incidentId}</span>
-          </div>
-        )}
-      </div>
-      <div className="flex items-center gap-4 text-nova-muted">
-        {lastUpdated && (
+    <div className="sticky top-[72px] z-20 border-y border-nova-border bg-nova-panel/80 px-5 py-2 text-xs font-mono backdrop-blur-md">
+      <div className="flex flex-wrap items-center justify-between gap-2">
+        <div className="flex items-center gap-4">
           <div className="flex items-center gap-1.5">
-            <Clock size={11} />
-            <span>Updated: {lastUpdated}</span>
+            {isOnline ? (
+              <Wifi size={11} className="text-nova-success" />
+            ) : (
+              <WifiOff size={11} className="text-nova-danger" />
+            )}
+            <span className={isOnline ? "text-nova-success" : "text-nova-danger"}>
+              {isOnline ? "SYSTEM ONLINE" : "OFFLINE MODE"}
+            </span>
           </div>
-        )}
-        <span>NovaRescue AI v1.0</span>
+          {incidentId && (
+            <div className="flex items-center gap-1.5 text-nova-muted">
+              <AlertCircle size={11} />
+              <span>INC: {incidentId}</span>
+            </div>
+          )}
+        </div>
+        <div className="flex items-center gap-4 text-nova-muted">
+          {lastUpdated && (
+            <div className="flex items-center gap-1.5">
+              <Clock size={11} />
+              <span>Updated: {lastUpdated}</span>
+            </div>
+          )}
+          <span>NovaRescue AI v1.0</span>
+        </div>
       </div>
     </div>
   );
@@ -112,18 +115,16 @@ export default function Dashboard() {
           setAnalysisData(response);
           setLastUpdated(new Date().toLocaleTimeString());
           setIsOnline(true);
-          toast.success(
-            `Analysis complete — Incident ${response.incident_id}`,
-            { autoClose: 5000 }
-          );
+          toast.success(`Analysis complete — Incident ${response.incident_id}`, {
+            autoClose: 5000,
+          });
         }
       } catch (err) {
         console.error("Analysis failed:", err);
         setIsOnline(false);
-        toast.error(
-          `Analysis failed: ${err.message || "Backend unavailable"}`,
-          { autoClose: 8000 }
-        );
+        toast.error(`Analysis failed: ${err.message || "Backend unavailable"}`, {
+          autoClose: 8000,
+        });
       } finally {
         setIsLoading(false);
       }
@@ -132,18 +133,16 @@ export default function Dashboard() {
   );
 
   return (
-    <div className="min-h-screen bg-nova-bg flex flex-col">
-      {/* Header */}
-      <header className="bg-nova-panel border-b border-nova-border px-5 py-4">
-        <div className="flex items-center justify-between">
+    <div className="dashboard-shell min-h-screen bg-nova-bg text-nova-text">
+      <header className="sticky top-0 z-30 border-b border-nova-border bg-nova-panel/85 px-5 py-4 backdrop-blur-md">
+        <div className="mx-auto flex w-full max-w-[1400px] items-center justify-between gap-4">
           <div className="flex items-center gap-3">
-            <div className="w-8 h-8 rounded-lg bg-nova-accent flex items-center justify-center shadow-nova-glow">
-              <Shield size={18} className="text-white" />
+            <div className="nova-glow-ring flex h-10 w-10 items-center justify-center rounded-xl bg-nova-accent shadow-nova-glow">
+              <Shield size={20} className="text-white" />
             </div>
             <div>
-              <h1 className="text-lg font-bold text-white tracking-tight">
-                NovaRescue{" "}
-                <span className="text-nova-accent">AI</span>
+              <h1 className="text-xl font-bold tracking-tight text-white">
+                NovaRescue <span className="text-nova-accent">AI</span>
               </h1>
               <p className="text-xs text-nova-muted">
                 Multi-Agent Emergency Disaster Response System
@@ -151,16 +150,16 @@ export default function Dashboard() {
             </div>
           </div>
 
-          <div className="flex items-center gap-6 text-xs font-mono text-nova-muted">
+          <div className="hidden items-center gap-6 text-xs font-mono text-nova-muted md:flex">
             <div className="flex items-center gap-1.5">
               <Activity size={12} className="text-nova-success" />
               <span>4 AGENTS READY</span>
             </div>
             <div className="flex items-center gap-1.5">
-              <div className="w-1.5 h-1.5 rounded-full bg-nova-accent animate-pulse" />
+              <div className="h-1.5 w-1.5 animate-pulse rounded-full bg-nova-accent" />
               <span>AMAZON NOVA</span>
             </div>
-            <div className="hidden md:flex items-center gap-1.5">
+            <div className="flex items-center gap-1.5">
               <span className="text-nova-border">|</span>
               <span>POWERED BY AWS BEDROCK</span>
             </div>
@@ -168,55 +167,70 @@ export default function Dashboard() {
         </div>
       </header>
 
-      {/* Status Bar */}
       <StatusBar
         isOnline={isOnline}
         lastUpdated={lastUpdated}
         incidentId={analysisData?.incident_id}
       />
 
-      {/* Main Content */}
-      <main className="flex-1 p-4 overflow-hidden">
-        {/* Top Row: 3 panels */}
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 mb-4 h-[calc(100vh-260px)] min-h-[480px]">
-          {/* Input Panel - 3 cols */}
-          <div className="lg:col-span-3 overflow-hidden">
-            <InputPanel onSubmit={handleSubmit} isLoading={isLoading} />
+      <main className="dashboard-scroll-area mx-auto flex w-full max-w-[1400px] flex-col gap-5 px-4 py-5">
+        <section className="scroll-card">
+          <div className="mb-4 flex items-center justify-between gap-2 border-b border-nova-border pb-3">
+            <div>
+              <p className="text-[11px] font-semibold uppercase tracking-[0.22em] text-nova-muted">
+                Mission Control
+              </p>
+              <h2 className="text-base font-semibold text-white">
+                Live Incident Command Deck
+              </h2>
+            </div>
+            <div className="hidden items-center gap-2 rounded-full border border-nova-border bg-nova-panel px-3 py-1.5 text-[11px] text-nova-muted sm:flex">
+              <ChevronDown size={14} className="text-nova-accent" />
+              Scroll for analytics
+            </div>
           </div>
 
-          {/* Agent Status - 4 cols */}
-          <div className="lg:col-span-4 overflow-hidden">
-            <AgentStatus
-              agentResults={analysisData?.agent_results}
-              isOrchestrating={isLoading}
-              totalTime={analysisData?.total_execution_time_ms}
-              runningAgentIndex={runningAgentIndex}
-            />
+          <div className="grid grid-cols-1 gap-4 lg:grid-cols-12">
+            <div className="lg:col-span-3">
+              <InputPanel onSubmit={handleSubmit} isLoading={isLoading} />
+            </div>
+            <div className="lg:col-span-4">
+              <AgentStatus
+                agentResults={analysisData?.agent_results}
+                isOrchestrating={isLoading}
+                totalTime={analysisData?.total_execution_time_ms}
+                runningAgentIndex={runningAgentIndex}
+              />
+            </div>
+            <div className="lg:col-span-5 max-h-[65vh] overflow-y-auto pr-1">
+              <ResponsePlan analysisData={analysisData} />
+            </div>
           </div>
+        </section>
 
-          {/* Response Plan - 5 cols */}
-          <div className="lg:col-span-5 overflow-y-auto">
-            <ResponsePlan analysisData={analysisData} />
+        <section className="scroll-card">
+          <div className="mb-3 flex items-center gap-3">
+            <div className="h-4 w-1.5 rounded-full bg-nova-accent" />
+            <h2 className="text-xs font-semibold uppercase tracking-widest text-nova-muted">
+              Voice Intel Feed
+            </h2>
           </div>
-        </div>
+          <VoiceSummary
+            summary={analysisData?.voice_summary}
+            isVisible={!!analysisData?.voice_summary}
+          />
+        </section>
 
-        {/* Voice Summary */}
-        <VoiceSummary
-          summary={analysisData?.voice_summary}
-          isVisible={!!analysisData?.voice_summary}
-        />
-
-        {/* Bottom: Resource Charts */}
         {analysisData && (
-          <div className="mt-4 animate-fade-in">
-            <div className="flex items-center gap-3 mb-3">
-              <div className="w-1.5 h-4 bg-nova-accent rounded-full" />
+          <section className="scroll-card animate-fade-in">
+            <div className="mb-3 flex items-center gap-3">
+              <div className="h-4 w-1.5 rounded-full bg-nova-accent" />
               <h2 className="text-xs font-semibold uppercase tracking-widest text-nova-muted">
                 Resource Analytics
               </h2>
             </div>
             <ResourceCharts analysisData={analysisData} />
-          </div>
+          </section>
         )}
       </main>
     </div>
