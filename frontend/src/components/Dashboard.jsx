@@ -124,8 +124,9 @@ export default function Dashboard() {
         console.error("Analysis failed:", err);
 
         const networkIssue = (err?.message || "").toLowerCase().includes("network error");
+        const routeUnavailable = err?.status === 404 || err?.status === 405;
 
-        if (networkIssue) {
+        if (networkIssue || routeUnavailable) {
           const fallback = await buildDemoAnalysis({
             mode,
             description,
@@ -136,7 +137,9 @@ export default function Dashboard() {
           setLastUpdated(new Date().toLocaleTimeString());
           setIsOnline(true);
           toast.warning(
-            "Backend unreachable. Switched to built-in demo engine so all modules remain interactive.",
+            routeUnavailable
+              ? "Backend route is unavailable in this deployment. Switched to built-in demo engine so the dashboard stays usable."
+              : "Backend unreachable. Switched to built-in demo engine so all modules remain interactive.",
             { autoClose: 7000 }
           );
         } else {
