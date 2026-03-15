@@ -1,8 +1,8 @@
 fastapi==0.110.0
 uvicorn==0.29.0
-gunicorn==21.2.0
+gunicorn==22.0.0
 pydantic==2.6.4
-python-multipart==0.0.9
+python-multipart==0.0.22
 python-dotenv==1.0.1
 reportlab==4.2.5
 requests==2.32.3
