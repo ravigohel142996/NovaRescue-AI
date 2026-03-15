@@ -46,14 +46,18 @@ api.interceptors.response.use(
   (response) => response,
   (error) => {
     const isNetworkError = !error.response;
+    const statusCode = error.response?.status;
     const message =
       error.response?.data?.detail ||
       (isNetworkError
         ? "Network Error: Unable to reach backend API. Check API URL/CORS/deployment routing."
-        : error.message) ||
+        : `API request failed with status ${statusCode}`) ||
       "Unknown error occurred";
     console.error(`[API Error] ${message}`);
-    return Promise.reject(new Error(message));
+    const normalizedError = new Error(message);
+    normalizedError.status = statusCode;
+    normalizedError.isNetworkError = isNetworkError;
+    return Promise.reject(normalizedError);
   }
 );
 
