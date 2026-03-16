@@ -152,7 +152,8 @@ export default function Dashboard() {
         addLog(`Error: ${err.message || "Backend unavailable"}`, "error");
 
         const networkIssue = (err?.message || "").toLowerCase().includes("network error");
-        const routeUnavailable = err?.status === 404 || err?.status === 405;
+        const backendRouteUnavailableStatuses = new Set([401, 403, 404, 405, 500, 502, 503, 504]);
+        const routeUnavailable = backendRouteUnavailableStatuses.has(err?.status);
 
         if (networkIssue || routeUnavailable) {
           addLog("Switching to built-in demo engine", "warn");
