@@ -113,13 +113,23 @@ export default function Dashboard() {
       try {
         let response;
 
-        if (mode === "text") {
+        if (simulationMode) {
+          addLog("Simulation mode enabled — using built-in demo engine", "warn");
+          response = await buildDemoAnalysis({
+            mode,
+            description,
+            location,
+            simulationMode,
+          });
+        }
+
+        if (!response && mode === "text") {
           const res = await analysisApi.analyzeDisaster({
             description,
             location,
           });
           response = res.data;
-        } else if (mode === "image" && file) {
+        } else if (!response && mode === "image" && file) {
           const formData = new FormData();
           formData.append("image", file);
           formData.append("description", description);
@@ -127,7 +137,7 @@ export default function Dashboard() {
           formData.append("simulation_mode", String(simulationMode));
           const res = await analysisApi.analyzeImage(formData);
           response = res.data;
-        } else if (mode === "voice" && file) {
+        } else if (!response && mode === "voice" && file) {
           const formData = new FormData();
           formData.append("audio", file, "recording.webm");
           formData.append("location", location);
@@ -143,9 +153,14 @@ export default function Dashboard() {
           setAnalysisData(response);
           setLastUpdated(new Date().toLocaleTimeString());
           setIsOnline(true);
-          toast.success(`Analysis complete — Incident ${response.incident_id}`, {
-            autoClose: 5000,
-          });
+          toast.success(
+            simulationMode
+              ? `Simulation ready — Incident ${response.incident_id}`
+              : `Analysis complete — Incident ${response.incident_id}`,
+            {
+              autoClose: 5000,
+            }
+          );
         }
       } catch (err) {
         console.error("Analysis failed:", err);
