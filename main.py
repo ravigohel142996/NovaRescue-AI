@@ -1,38 +1,36 @@
-from fastapi import FastAPI
-from fastapi.middleware.cors import CORSMiddleware
-import asyncio
+"""Compatibility entrypoint for platform deploys (Render/Gunicorn).
 
-app = FastAPI(title="NovaRescue AI")
+This module exposes `app` at repo root so commands such as:
+`gunicorn -k uvicorn.workers.UvicornWorker main:app`
+continue to work, while running the full backend implementation from
+`backend/main.py`.
+"""
 
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=["*"],
-    allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
-)
+from __future__ import annotations
+
+import os
+import sys
+
+# Ensure backend package-local imports like `from routes...` resolve when
+# this root module is imported by process managers.
+BACKEND_DIR = os.path.join(os.path.dirname(__file__), "backend")
+if BACKEND_DIR not in sys.path:
+    sys.path.insert(0, BACKEND_DIR)
+
+from backend.main import app  # noqa: E402
 
 
-@app.get("/")
-def root():
-    return {"status": "NovaRescue backend running"}
+if __name__ == "__main__":
+    import uvicorn
 
+    host = os.getenv("APP_HOST", "0.0.0.0")
+    port = int(os.getenv("APP_PORT", "8000"))
+    log_level = os.getenv("LOG_LEVEL", "info").lower()
 
-@app.post("/api/analyze-disaster")
-async def analyze(data: dict):
-    description = data.get("description")
-    location = data.get("location")
-
-    await asyncio.sleep(1)
-
-    return {
-        "disaster_type": "Flood",
-        "severity": "Critical",
-        "location": location,
-        "summary": f"Major flooding detected: {description}",
-        "response_plan": {
-            "ambulances": 10,
-            "evacuation_zones": ["Zone A", "Zone B"],
-            "alert": "Evacuate low-lying areas immediately",
-        },
-    }
+    uvicorn.run(
+        "main:app",
+        host=host,
+        port=port,
+        log_level=log_level,
+        reload=os.getenv("APP_ENV", "development") == "development",
+    )

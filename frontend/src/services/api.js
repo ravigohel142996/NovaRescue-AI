@@ -6,23 +6,28 @@
 import axios from "axios";
 
 const LOCAL_API_URL = "http://localhost:8000";
+const DEFAULT_RENDER_API_URL = "https://novarescue-backend.onrender.com";
+
+function normalizeBaseUrl(url) {
+  return url?.replace(/\/$/, "");
+}
 
 function resolveBaseUrl() {
-  const envUrl = process.env.REACT_APP_API_URL?.trim();
-  if (envUrl) {
-    return envUrl;
-  }
+  const envUrl = normalizeBaseUrl(process.env.REACT_APP_API_URL?.trim());
+  if (envUrl) return envUrl;
 
-  if (typeof window === "undefined") {
-    return LOCAL_API_URL;
-  }
+  if (typeof window === "undefined") return LOCAL_API_URL;
 
   const { hostname, origin } = window.location;
   const isLocalhost = hostname === "localhost" || hostname === "127.0.0.1";
+  if (isLocalhost) return LOCAL_API_URL;
 
-  // Local dev: React app runs on :3000 and backend on :8000.
-  // Deployed env: frontend and backend are usually served under the same origin.
-  return isLocalhost ? LOCAL_API_URL : origin;
+  // Vercel deployments frequently host only the frontend; route API calls directly
+  // to the Render backend when an explicit environment variable is missing.
+  if (hostname.endsWith("vercel.app")) return DEFAULT_RENDER_API_URL;
+
+  // Fallback for monolithic/same-origin deployments.
+  return normalizeBaseUrl(origin);
 }
 
 const BASE_URL = resolveBaseUrl();
